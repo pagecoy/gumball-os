@@ -1,4 +1,4 @@
-# Gumball OS
+# Gumball OS v1.1.0
 
 Gumball is a terminal-only operating system. You'll have no distractions, no browser, no apps, no programs. You can run simple commands like file system stuff (`cat`, `touch`, `ls`). The list of capabilities are below.
 
@@ -16,11 +16,12 @@ Arrow up and down key to see commands history.
 | `touch` | `touch [FILE]` | Create a new empty file |
 | `ls` | `ls` | List files in current directory |
 | `rm` | `rm [FILE]` | Remove a file from disk |
+| `mv` | `mv [OLD] [NEW]` | Rename a file. Doesn't move files yet. | 
 | `cat` | `cat [FILE]` | Display file contents to screen | 
 
 
 ## Limitations and Future Plans
-Gumball is in early development. There are still missing commands/abilities like changing directory (`cd`), making directories (`mkdir`), file renaming (`mv`), and others.
+Gumball is in early development. There are still missing commands/abilities like changing directory (`cd`), making directories (`mkdir`), and others.
 
 This project started because I wanted to create my own operating system that's stripped down to the basics. No desktop, no apps, no distractions. I'll eventually add my own programs to this like [`mark`](https://github.com/pagecoy/mark.git) and some others that will make this project more interesting.
 

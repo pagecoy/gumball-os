@@ -287,3 +287,41 @@ void fs_cat_file(const char* filename) {
     }
     term_write("\n");
 }
+
+/* Find old_name in header and rename in place. The actual file data and its
+   offset/size never move - only the name field changes, so this is cheap
+   compared to write/remove which have to shuffle entries or data around. */
+void fs_rename_file(const char* old_name, const char* new_name) {
+    /* 1. Find the file we're renaming */
+    int found_index = -1;
+    for (uint32_t i = 0; i < fs_header->num_files; i++) {
+        if (str_equal(fs_header->files[i].name, old_name)) {
+            found_index = i;
+            break;
+        }
+    }
+    if (found_index == -1) {
+        term_set_color(0x0C);
+        term_write("fs: mv: file '");
+        term_write(old_name);
+        term_write("' cannot be found\n");
+        term_set_color(0x0F);
+        return;
+    }
+
+    /* 2. Make sure new_name isn't already taken by a *different* file */
+    for (uint32_t i = 0; i < fs_header->num_files; i++) {
+        if ((int)i == found_index) continue;
+        if (str_equal(fs_header->files[i].name, new_name)) {
+            term_set_color(0x0C);
+            term_write("fs: mv: file '");
+            term_write(new_name);
+            term_write("' already exists\n");
+            term_set_color(0x0F);
+            return;
+        }
+    }
+
+    /* 3. Overwrite the name field. offset/size/data untouched. */
+    fs_copy_name(fs_header->files[found_index].name, new_name);
+}

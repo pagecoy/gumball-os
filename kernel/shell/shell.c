@@ -106,13 +106,14 @@ static void shell_execute(int argc, char** argv) {
         term_write("  touch [FILE]         - Create a new empty file\n");
         term_write("  ls                   - List files\n");
         term_write("  rm [FILE]            - Remove a file\n");
+        term_write("  mv [OLD] [NEW]       - Rename a file. Doesn't move files yet.\n");
         term_write("  cat [FILE]           - Display file contents\n");
     } 
     else if (str_equal(cmd, "clear")) {
         term_clear();
     } 
     else if (str_equal(cmd, "version")) {
-        term_write("Gumball v1.0.0\n");
+        term_write("Gumball v1.1.0\n");
     } 
     else if (str_equal(cmd, "echo")) {
         for (int i = 1; i < argc; i++) {
@@ -149,6 +150,13 @@ static void shell_execute(int argc, char** argv) {
             term_write("usage: cat <filename>\n");
         } else {
             fs_cat_file(argv[1]);
+        }
+    }
+    else if (str_equal(cmd, "mv")) {
+        if (argc < 3) {
+            term_write("usage: mv <old_filename> <new_filename>\n");
+        } else {
+            fs_rename_file(argv[1], argv[2]);
         }
     }
     else if (cmd[0] != '\0') {

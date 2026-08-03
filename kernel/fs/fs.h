@@ -46,5 +46,6 @@ void fs_touch_file(const char* filename);
 void fs_remove_file(const char* filename);
 void fs_write_file(const char* filename, const char* content, uint32_t size);
 void fs_cat_file(const char* filename);
+void fs_rename_file(const char* old_name, const char* new_name);
 
 #endif
