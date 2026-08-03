@@ -1,0 +1,13 @@
+isodir/
+boot.o
+gumball.bin
+gumball.iso
+idt.o
+gdt.o
+kernel.o
+keyboard.o
+term.o
+fs.o
+disk.img
+shell.o
+llm_context.md
