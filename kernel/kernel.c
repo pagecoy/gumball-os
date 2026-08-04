@@ -8,7 +8,7 @@
 void kernel_main(uint32_t magic, void* mbi_ptr) {
     term_clear();
     term_set_color(0x09); /* blue */
-    term_write("Gumball v1.1.0 booting...\n\n");
+    term_write("Gumball booting...\n\n");
     term_set_color(0x0F); /* white */
     term_write("Welcome! This is Gumball OS by pagecoy.\n");
     term_write("Get started by typing 'help' to see available commands\n\n");

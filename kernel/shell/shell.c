@@ -73,7 +73,7 @@ static void shell_execute(int argc, char** argv) {
 
     if (redirect_index != -1) {
         if (redirect_index + 1 >= argc) {
-            term_write("Usage: command > filename\n");
+            term_write("usage: command > filename\n");
             return;
         }
         
@@ -105,15 +105,19 @@ static void shell_execute(int argc, char** argv) {
         term_write("  echo [TEXT] > [FILE] - Write text to a file\n");
         term_write("  touch [FILE]         - Create a new empty file\n");
         term_write("  ls                   - List files\n");
-        term_write("  rm [FILE]            - Remove a file\n");
-        term_write("  mv [OLD] [NEW]       - Rename a file. Doesn't move files yet.\n");
+        term_write("  rm [FILE]            - Remove a file or folder. Use -r to recurse, -f to force\n");
+        term_write("  mv [OLD] [NEW]       - Rename a file or folder\n");
         term_write("  cat [FILE]           - Display file contents\n");
+        term_write("  mkdir [DIR]          - Create a directory\n");
+        term_write("  cd [DIR|..|/]        - Change directory\n");
+        term_write("  pwd                  - Print the current working directory\n");
+        term_write("  debug                - Dump filesystem debug info\n");
     } 
     else if (str_equal(cmd, "clear")) {
         term_clear();
     } 
     else if (str_equal(cmd, "version")) {
-        term_write("Gumball v1.1.0\n");
+        term_write("Gumball v1.2.0\n");
     } 
     else if (str_equal(cmd, "echo")) {
         for (int i = 1; i < argc; i++) {
@@ -125,11 +129,11 @@ static void shell_execute(int argc, char** argv) {
         term_write("\n");
     }
     else if (str_equal(cmd, "ls")) {
-        fs_list_files();
+        fs_list_files(argc >=2 ? argv[1] : "");
     }
     else if (str_equal(cmd, "touch")) {
         if (argc < 2) {
-            term_write("Usage: touch <filename>\n");
+            term_write("usage: touch <filename>\n");
         } else {
             for (int i = 1; i < argc; i++) {
                 fs_touch_file(argv[i]);
@@ -137,13 +141,27 @@ static void shell_execute(int argc, char** argv) {
         }
     }
     else if (str_equal(cmd, "rm")) {
-        if (argc < 2) {
-            term_write("usage: rm <filename> [filename2]...\n");
-        } else {
-            for (int i = 1; i < argc; i++) {
-                fs_remove_file(argv[i]);
+        int recursive = 0, force = 0;
+        int has_target = 0;
+
+        for (int i = 1; i < argc; i++) {
+            if (argv[i][0] == '-') {
+                for (int j = 1; argv[i][j] != '\0'; j++) {
+                    if (argv[i][j] == 'r') recursive = 1;
+                    if (argv[i][j] == 'f') force = 1;
+                }
+            } else {
+                has_target = 1;
             }
         }
+        if (!has_target) {
+            term_write("usage: rm [-rf] <file1/folder1> [file1/folder2]...\n");
+        } else {
+            for (int i = 1; i < argc; i++) {
+                if (argv[i][0] != '-') fs_remove_path(argv[i], recursive, force);
+            }
+        }
+        
     }
     else if (str_equal(cmd, "cat")) {
         if (argc < 2) {
@@ -154,10 +172,37 @@ static void shell_execute(int argc, char** argv) {
     }
     else if (str_equal(cmd, "mv")) {
         if (argc < 3) {
-            term_write("usage: mv <old_filename> <new_filename>\n");
+            term_write("usage: mv <old_foldername> <new_foldername>\n");
+            term_write("       mv <old_filename> <new_filename>\n");
         } else {
             fs_rename_file(argv[1], argv[2]);
         }
+    }
+    else if (str_equal(cmd, "mkdir")) {
+        if (argc < 2) {
+            term_write("usage: mkdir <dirname>\n");
+        } else {
+            for (int i = 1; i < argc; i++) {
+                fs_mkdir(argv[i]);
+            }
+        }
+    }
+    else if (str_equal(cmd ,"cd")) {
+        if (argc < 2) {
+            term_write("usage: cd <dirname>\n");
+        } else {
+            fs_cd(argv[1]);
+        }
+    }
+    else if (str_equal(cmd, "pwd")) {
+        if (argc > 1) {
+            term_write("usage: pwd\n");
+        } else {
+            fs_pwd();
+        }
+    }
+    else if (str_equal(cmd, "debug")) {
+        fs_debug_dump();
     }
     else if (cmd[0] != '\0') {
         term_write("gumball: unknown command '");
@@ -173,9 +218,16 @@ void shell_run(void) {
     int pos = 0;
 
     while (1) {
+        char path_buf[128];
+        fs_current_path(path_buf, sizeof(path_buf));
+
         term_set_color(0x0E); /* yellow */
-        term_write("gumball:/$ ");
+        term_write("gumball:");
+        term_set_color(0x3);
+        term_write("~");
+        term_write(path_buf);
         term_set_color(0x0F); /* white */
+        term_write("$ ");
 
         pos = 0;
         line_buffer[0] = '\0';
@@ -193,8 +245,12 @@ void shell_run(void) {
                     
                     term_putchar('\r');
                     term_set_color(0x0E);
-                    term_write("gumball:/$ ");
-                    term_set_color(0x0F);
+                    term_write("gumball:");
+                    term_set_color(0x3);
+                    term_write("~");
+                    term_write(path_buf);
+                    term_set_color(0x0F); /* white */
+                    term_write("$ ");
                     str_copy(line_buffer, history[hist_index]);
                     pos = str_len(line_buffer);
                     term_write(line_buffer);
@@ -210,8 +266,12 @@ void shell_run(void) {
                     
                     term_putchar('\r');
                     term_set_color(0x0E);
-                    term_write("gumball:/$ ");
-                    term_set_color(0x0F);
+                    term_write("gumball:");
+                    term_set_color(0x3);
+                    term_write("~");
+                    term_write(path_buf);
+                    term_set_color(0x0F); /* white */
+                    term_write("$ ");
                     if (hist_index == hist_count) {
                         line_buffer[0] = '\0';
                         pos = 0;
