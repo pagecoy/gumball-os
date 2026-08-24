@@ -1,4 +1,4 @@
-# Gumball OS v1.2.0
+# Gumball OS v1.2.1
 
 Gumball is a terminal-only operating system. You'll have no distractions, no browser, no apps, no programs. You can run simple commands like file system stuff (`cat`, `touch`, `ls`, `mkdir`, `cd`). The list of capabilities are below.
 

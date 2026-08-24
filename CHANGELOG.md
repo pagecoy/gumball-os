@@ -3,6 +3,15 @@
 Changes happening to Gumball will be available here.
 **Format: MM-DD-YY**  
 
+## Version 1.2.1 - 08-24-26
+### Fixed
+* `echo [TEXT] > [FILE]` no longer overflows `content_buffer` when the written content exceeds 255 bytes; it now truncates safely and warns instead of writing past the stack buffer.
+* `rm` now refuses to delete the current directory, or any ancestor of it, instead of silently corrupting `current_dir` and leaving the prompt showing `//`.
+* `mkdir docs/` (and any path with a trailing slash) now creates `docs`, not a directory literally named `docs/`.
+### Files Changed
+* `/kernel/shell/shell.c`: `shell_execute`.
+* `/kernel/fs/fs.c`: new `fs_is_unsafe_target`, `fs_resolve_path`
+
 ## Version 1.2.0 - 08-04-26
 ### Added
 * `mv` can now move files between directories, not just rename in place.

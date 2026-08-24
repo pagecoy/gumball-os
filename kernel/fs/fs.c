@@ -160,6 +160,17 @@ static int fs_cd_step(const char* name) {
 static int fs_resolve_path(const char* path, int* out_dir, char* out_name) {
     int saved = current_dir;
 
+    /* Strip trailing slash(es) so something like "docs/" is named "docs" without the slash*/
+    char clean_path[128];
+    int len = 0;
+    while (path[len] != '\0' && len < 127) len++;
+    if (len > 1 && path[len - 1] == '/') {
+        while (len > 1 && path[len - 1] == '/') len--;
+        for (int i = 0; i < len; i++) clean_path[i] = path[i];
+        clean_path[len] = '\0';
+        path = clean_path;
+    }
+
     int last_slash = -1;
     for (int i = 0; path[i] != '\0'; i++) {
         if (path[i] == '/' && path[i + 1] != '\0') last_slash = i;
@@ -216,6 +227,18 @@ static void fs_remove_entry(int idx, int recursive) {
     e->size = 0;
     e->used = 0;
     fs_header->num_files--;
+}
+
+/* Returns 1 if idx is current_dir itself or one of its ancenstors (walked via parent links)
+   Used to block rm deleting out from under wherever the user is currently in
+*/
+static int fs_is_unsafe_target(int idx) {
+    int walk = current_dir;
+    while (walk != -1) {
+        if (walk == idx) return 1;
+        walk = fs_header->files[walk].parent;
+    }
+    return 0;
 }
 
 void fs_init(uint32_t magic, void* mbi_ptr) {
@@ -460,7 +483,7 @@ int fs_cd(const char* path) {
     return 1;
 }
 
-/* New check: if you are removing a directory that still has children in it (size > 0), it refuses
+/* If you are removing a directory that still has children in it (size > 0), it refuses
    to delete. Otherwise, delete and remove its entry (set used=0) and detatch itself from 
    its parent's child list */
 void fs_remove_path(const char* path, int recursive, int force) {
@@ -477,6 +500,15 @@ void fs_remove_path(const char* path, int recursive, int force) {
             term_write("' cannot be found\n");
             term_set_color(0x0F);
         }
+        return;
+    }
+
+    if (fs_is_unsafe_target(idx)) {
+        term_set_color(0x0C);
+        term_write("fs: rm: '");
+        term_write(path);
+        term_write("' is the current directory or an ancestor of it\n");
+        term_set_color(0x0F);
         return;
     }
 

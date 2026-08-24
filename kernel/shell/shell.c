@@ -126,7 +126,7 @@ static void shell_execute(int argc, char** argv) {
         term_clear();
     } 
     else if (str_equal(cmd, "version")) {
-        term_write("Gumball v1.2.0\n");
+        term_write("Gumball v1.2.1\n");
     } 
     else if (str_equal(cmd, "echo")) {
         for (int i = 1; i < argc; i++) {
