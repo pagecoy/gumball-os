@@ -608,7 +608,7 @@ void fs_rename_file(const char* old_path, const char* new_path) {
 }
 
 void fs_debug_dump(void) {
-    term_write("---- GFS1 raw state ----\n");
+    term_write("---- GFS2 raw state ----\n");
     term_write("magic: ");
     for (int i = 0; i < 4; i++) term_putchar(fs_header->magic[i]);
     term_write("\n");

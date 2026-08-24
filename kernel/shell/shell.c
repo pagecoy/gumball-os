@@ -81,15 +81,24 @@ static void shell_execute(int argc, char** argv) {
         
         char content_buffer[256];
         int pos = 0;
+        int truncated = 0;
         
         for (int i = 1; i < redirect_index; i++) {
             int len = str_len(argv[i]);
             for (int j = 0; j < len; j++) {
+                if (pos >= (int)sizeof(content_buffer) - 1) { truncated = 1; break; }
                 content_buffer[pos++] = argv[i][j];
             }
+            if (truncated) break;
             if (i < redirect_index - 1) {
+                if (pos >= (int)sizeof(content_buffer) - 1) { truncated = 1; break; }
                 content_buffer[pos++] = ' ';
             }
+        }
+        if (truncated) {
+            term_set_color(0x0C);
+            term_write("echo: content truncated (max 255 bytes)\n");
+            term_set_color(0x0F);
         }
         
         fs_write_file(target_file, content_buffer, pos);
